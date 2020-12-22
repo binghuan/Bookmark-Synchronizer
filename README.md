@@ -1,4 +1,4 @@
-#Bookmark synchronizer
+# Bookmark synchronizer
 
 This is a demo to show you how to build a bookmark data structure.  
 We need to consider the following issues:  
