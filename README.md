@@ -1,5 +1,7 @@
 # Bookmark synchronizer
 
+![](./icon.png)
+
 This is a demo to show you how to build a bookmark data structure.  
 We need to consider the following issues:  
 - Bookmarks need to be aligned in order  
