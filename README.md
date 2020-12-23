@@ -10,9 +10,9 @@ We need to consider the following issues:
 - General data structure of the list view   
 
 
-![](./Slide4.png)
+![](./Slide5.png)
 
-![](./Slide7.png)
+![](./Slide8.png)
 
 ## Demo
 ![](./demo.gif)
