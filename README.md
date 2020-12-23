@@ -15,5 +15,3 @@ We need to consider the following issues:
 ## Demo
 ![](./demo.gif)
 
-## Todo ... 
-Complete function "removeById": need to delete children before deleting the parent.

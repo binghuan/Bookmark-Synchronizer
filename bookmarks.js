@@ -38,7 +38,19 @@ var data = [
         "href": null,
         "icon": null,
         "personal_toolbar_folder": true,
-        "child_ids": ["2002", "2003"]
+        "child_ids": ["2002", "2003", "1003"]
+    },
+    {
+        "type": "folder",
+        "parent_id": "1002",
+        "id": "1003",
+        "name": "folder 1003",
+        "add_date": new Date() / 1000,
+        "last_modified": new Date() / 1000,
+        "href": null,
+        "icon": null,
+        "personal_toolbar_folder": true,
+        "child_ids": ["2004"]
     },
     {
         "type": "bookmark",
@@ -75,6 +87,18 @@ var data = [
         "icon": " data:image/png;base64,${BASE64_STRING}",
         "personal_toolbar_folder": false,
         "child_ids": []
+    },
+    {
+        "type": "bookmark",
+        "parent_id": "1003",
+        "id": "2004",
+        "name": "bookmark 2004",
+        "add_date": new Date() / 1000,
+        "last_modified": new Date() / 1000,
+        "href": "http://www.google.com",
+        "icon": " data:image/png;base64,${BASE64_STRING}",
+        "personal_toolbar_folder": false,
+        "child_ids": []
     }
 ]
 
@@ -95,9 +119,12 @@ function convertToView() {
     console.log("↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦");
 
     let printBookmarkObj = (depth, bookmarkObj) => {
+        if (bookmarkObj == null) {
+            return;
+        }
         let text = "";
         for (let i = 0; i < depth; i++) {
-            if(i == 0) {
+            if (i == 0) {
                 text += "     ";
             } else {
                 text += "  └──";
@@ -131,7 +158,9 @@ function convertToView() {
         return;
     }
 
-    travel(rootFolder.child_ids);
+    if (rootFolder != null) {
+        travel(rootFolder.child_ids);
+    }
 
     console.log("Total:", data.length);
 }
@@ -183,6 +212,9 @@ var insertToFolder = (type, targetFolderId, toIndex) => {
 var removeById = (id) => {
     id = id.toString();
     let bookmarkObj = findBookmarkObjById(id);
+    if (bookmarkObj == null) {
+        return;
+    }
     if (bookmarkObj.type == "bookmark") {
         let parentFolder = findBookmarkObjById(bookmarkObj.parent_id);
         if (parentFolder != null) {
@@ -193,7 +225,17 @@ var removeById = (id) => {
     } else if (bookmarkObj.type == "folder") {
         for (let i = 0; i < bookmarkObj.child_ids.length; i++) {
             let bookmarkId = bookmarkObj.child_ids[i];
-            data = data.filter(function (el) { return el.id != bookmarkId; });
+            let obj = findBookmarkObjById(bookmarkId);
+            if(obj == null ) {
+                return;
+            }
+            if (obj.type == "folder") {
+                console.log("Go into folder,  id:", obj.id);
+                removeById(obj.id);
+                data = data.filter(function (el) { return el.id != bookmarkId; });
+            } else if (obj.type == "bookmark") {
+                data = data.filter(function (el) { return el.id != bookmarkId; });
+            }
         }
         bookmarkObj.child_ids = [];
         data = data.filter(function (el) { return el.id != bookmarkObj.id; });
