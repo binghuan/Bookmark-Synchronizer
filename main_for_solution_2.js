@@ -112,7 +112,12 @@ var bkmgr = (function () {
     convertToView();
 
     return {
-
+        getTree: () => {
+            return dataTree;
+        },
+        getMap: () => {
+            return dataMap;
+        },
         convertToView: convertToView,
         printBookmarkObj: printBookmarkObj,
         moveToFolder: moveToFolder,
