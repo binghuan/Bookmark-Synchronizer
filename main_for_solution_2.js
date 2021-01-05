@@ -106,7 +106,7 @@ var bkmgr = (function (bookmarkData) {
         sourceId = sourceId.toString();
         targetFolderId = targetFolderId.toString();
         let targetFolder = dataMap[targetFolderId];
-        console.log(targetFolder);
+        // console.log(targetFolder);
         if (targetFolder.type != "folder") {
             console.error("Target is not a folder");
             return;
@@ -116,6 +116,12 @@ var bkmgr = (function (bookmarkData) {
         if (targetFolder.children.length < toIndex) {
             toIndex = 0;
         }
+
+        if (bookmarkObj.parent != null) {
+            bookmarkObj.parent.children = bookmarkObj.parent.children.filter(function (el) { return el.id != bookmarkObj.id; });
+        }
+
+        bookmarkObj.parent = targetFolder;
         targetFolder.children.splice(toIndex, 0, bookmarkObj);
 
         convertToView();
