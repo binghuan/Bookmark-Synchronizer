@@ -89,7 +89,17 @@ var bkmgr = (function (bookmarkData) {
         if (firstFolder != null) {
             travel(firstFolder);
         }
-        console.log("Total:", Object.keys(dataMap).length);
+
+        let total = 0;
+        for (let i = 0; i < Object.keys(dataMap).length; i++) {
+            let key = Object.keys(dataMap)[i];
+            let bkObj = dataMap[key];
+            if (bkObj.type == "url") {
+                total += 1;
+            }
+        }
+
+        console.log("Total:", total);
     };
 
     let moveToFolder = (sourceId, targetFolderId, toIndex) => {
