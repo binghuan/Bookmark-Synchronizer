@@ -1,4 +1,4 @@
-let treeData = {
+let bookmarkTree = {
     "checksum": "695bd7d6ad4e4c5cdc6dd999b96c3046",
     "roots": {
         "bookmark_bar": {
@@ -50,12 +50,12 @@ let printBookmarkObj = (depth, bookmarkObj) => {
     console.log(text);
 }
 
-let nodeMap = {};
+let bookmarkMap = {};
 
 function convertToView() {
-    nodeMap = {};
+    bookmarkMap = {};
     console.log("↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦");
-    let otherFolder = treeData.roots.bookmark_bar;
+    let firstFolder = bookmarkTree.roots.bookmark_bar;
     let depth = 0;
 
     let travel = (folderObj) => {
@@ -64,8 +64,8 @@ function convertToView() {
             return;
         }
 
+        bookmarkMap[folderObj.id] = folderObj;
         if (folderObj.children == null) {
-            nodeMap[folderObj.id] = folderObj;
             return;
         }
 
@@ -74,7 +74,7 @@ function convertToView() {
             let bookmarkObj = folderObj.children[i];
             if (bookmarkObj != null) {
                 bookmarkObj.parent = folderObj;
-                nodeMap[bookmarkObj.id] = bookmarkObj;
+                bookmarkMap[bookmarkObj.id] = bookmarkObj;
                 printBookmarkObj(depth, bookmarkObj);
                 travel(bookmarkObj);
             }
@@ -83,25 +83,25 @@ function convertToView() {
         return;
     }
 
-    printBookmarkObj(depth, otherFolder);
-    if (otherFolder != null) {
-        travel(otherFolder);
+    printBookmarkObj(depth, firstFolder);
+    if (firstFolder != null) {
+        travel(firstFolder);
     }
-    console.log("Total:", Object.keys(nodeMap).length);
+    console.log("Total:", Object.keys(bookmarkMap).length);
 }
 
 
 var moveToFolder = (sourceId, targetFolderId, toIndex) => {
     sourceId = sourceId.toString();
     targetFolderId = targetFolderId.toString();
-    let targetFolder = nodeMap[targetFolderId];
+    let targetFolder = bookmarkMap[targetFolderId];
     console.log(targetFolder);
     if (targetFolder.type != "folder") {
         console.error("Target is not a folder");
         return;
     }
 
-    let bookmarkObj = nodeMap[sourceId];
+    let bookmarkObj = bookmarkMap[sourceId];
     if (targetFolder.children.length < toIndex) {
         toIndex = 0;
     }
@@ -130,14 +130,14 @@ let insertToFolder = (type, targetFolderId, toIndex) => {
         bookmarkObj.children = [];
     }
 
-    nodeMap[bookmarkObj.id] = bookmarkObj;
+    bookmarkMap[bookmarkObj.id] = bookmarkObj;
 
     moveToFolder(bookmarkObj.id, targetFolderId, toIndex);
 }
 
 let removeById = (id) => {
     id = id.toString();
-    let bookmarkObj = nodeMap[id];
+    let bookmarkObj = bookmarkMap[id];
     if (bookmarkObj == null) {
         return;
     }
