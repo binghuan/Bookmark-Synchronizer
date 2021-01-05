@@ -1,34 +1,36 @@
-var bkmgr = (function () {
+var bookmarkJson = {
+    "checksum": "695bd7d6ad4e4c5cdc6dd999b96c3046",
+    "roots": {
+        "bookmark_bar": {
+            "children": [
+                {
+                    "date_added": "13019420134102000",
+                    "guid": "7dfde927-cc03-f5c6-bee8-8bc3cdf8cd57",
+                    "id": "5006",
+                    "meta_info": {
+                        "last_visited_desktop": "13204094342410328",
+                        "last_visited": "13204094342410328"
+                    },
+                    "name": "Feedly",
+                    "type": "url",
+                    "url": "http://cloud.feedly.com/#latest"
+                }
+            ],
+            "date_added": "13023623358198834",
+            "date_modified": "13253167117802281",
+            "guid": "00000000-0000-4000-a000-000000000002",
+            "id": "1",
+            "name": "Bookmarks Bar",
+            "type": "folder"
+        }
+    },
+    "sync_metadata": "CrABCo8BCI",
+    "version": 1
+};
+
+var bkmgr = (function (bookmarkData) {
     let dataMap = {};
-    let dataTree = {
-        "checksum": "695bd7d6ad4e4c5cdc6dd999b96c3046",
-        "roots": {
-            "bookmark_bar": {
-                "children": [
-                    {
-                        "date_added": "13019420134102000",
-                        "guid": "7dfde927-cc03-f5c6-bee8-8bc3cdf8cd57",
-                        "id": "5006",
-                        "meta_info": {
-                            "last_visited_desktop": "13204094342410328",
-                            "last_visited": "13204094342410328"
-                        },
-                        "name": "Feedly",
-                        "type": "url",
-                        "url": "http://cloud.feedly.com/#latest"
-                    }
-                ],
-                "date_added": "13023623358198834",
-                "date_modified": "13253167117802281",
-                "guid": "00000000-0000-4000-a000-000000000002",
-                "id": "1",
-                "name": "Bookmarks Bar",
-                "type": "folder"
-            }
-        },
-        "sync_metadata": "CrABCo8BCI",
-        "version": 1
-    };
+    let dataTree = bookmarkData || {};
 
     let printBookmarkObj = (depth, bookmarkObj) => {
         if (bookmarkObj == null) {
@@ -118,6 +120,9 @@ var bkmgr = (function () {
         getMap: () => {
             return dataMap;
         },
+        setTree: (data) => {
+            dataTree = data;
+        },
         convertToView: convertToView,
         printBookmarkObj: printBookmarkObj,
         moveToFolder: moveToFolder,
@@ -156,4 +161,4 @@ var bkmgr = (function () {
         }
 
     }
-})();
+})(bookmarkJson);
