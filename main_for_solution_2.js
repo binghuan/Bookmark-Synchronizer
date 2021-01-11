@@ -28,9 +28,26 @@ var bookmarkJson = {
     "version": 1
 };
 
-var bkmgr = (function (bookmarkData) {
-    let dataMap = {};
+var book = (function (bookmarkData) {
+
+    // The original JSON object of the bookmark
     let dataTree = bookmarkData || {};
+
+    // Data mapping for each node in bookmarks
+    let dataMap = {};
+
+    let temp = null;
+
+    let uuidv4 = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    let getTemp = () => {
+        return temp;
+    }
 
     let printBookmarkObj = (depth, bookmarkObj) => {
         if (bookmarkObj == null) {
@@ -102,6 +119,13 @@ var bkmgr = (function (bookmarkData) {
         console.log("Total:", total);
     };
 
+    let cloneById = (sourceId) => {
+        console.log(">> cloneById", sourceId);
+        let sourceObj = dataMap[sourceId];
+        temp = sourceObj;
+    }
+
+    // Move bookmark or folder into another folder
     let moveToFolder = (sourceId, targetFolderId, toIndex) => {
         sourceId = sourceId.toString();
         targetFolderId = targetFolderId.toString();
@@ -129,7 +153,41 @@ var bkmgr = (function (bookmarkData) {
 
     convertToView();
 
+    let copyFolder = (sourceId) => {
+        console.log(">> cutFolder:", sourceId);
+    } 
+
+    let cutFolder = (sourceId) => {
+        console.log(">> cutFolder:", sourceId);
+        let sourceObj = dataMap[sourceId];
+        temp = sourceObj;
+        removeById(sourceId);
+    }
+
+    let cutBookmark = (sourceId) => {
+        console.log(">> cutBookmark:", sourceId);
+        cloneById(sourceId);
+        removeById(sourceId);
+    }
+
+    let copyBookmark = (sourceId) => {
+        console.log(">> copyBookmark:", sourceId);
+    }
+
+    let removeById = (id) => {
+        id = id.toString();
+        let bookmarkObj = dataMap[id];
+        if (bookmarkObj == null) {
+            return;
+        }
+        bookmarkObj.parent.children = bookmarkObj.parent.children.filter(function (el) { return el.id != bookmarkObj.id; });
+        convertToView();
+    }
+
     return {
+
+        getTemp: getTemp,
+        cutBookmark: cutBookmark,
         getTree: () => {
             return dataTree;
         },
@@ -137,44 +195,51 @@ var bkmgr = (function (bookmarkData) {
             return dataMap;
         },
         setTree: (data) => {
-            dataTree = data;
+            if (typeof data == "string") {
+                dataTree = JSON.parse(data)
+            } else {
+                dataTree = data;
+            }
         },
         convertToView: convertToView,
         printBookmarkObj: printBookmarkObj,
         moveToFolder: moveToFolder,
-        insertToFolder: (type, targetFolderId, toIndex) => {
+        insertToFolder: (sourceObj, targetFolderId, toIndex) => {
+
+            if (sourceObj == null) {
+                console.warn("sourceObj is null");
+                return;
+            }
+
             targetFolderId = targetFolderId.toString();
             let timestamp = new Date().getTime() * 10000;
-            let bookmarkObj = {
-                "date_added": timestamp,
-                "guid": null,
-                "id": timestamp,
-                "meta_info": {
-                    "last_visited_desktop": null,
-                    "last_visited": null,
-                },
-                "name": (type == "folder") ? "folder" : "bookmark",
-                "type": (type == "folder") ? "folder" : "url",
-                "url": "http://www.google.com",
-            };
 
-            if (type == "folder") {
-                bookmarkObj.children = [];
+            let bookmarkObj = null;
+            if (typeof sourceObj == "string") {
+                let type = sourceObj;
+                bookmarkObj = {
+                    "date_added": timestamp,
+                    "guid": uuidv4(),
+                    "id": timestamp,
+                    "meta_info": {
+                        "last_visited_desktop": null,
+                        "last_visited": null,
+                    },
+                    "name": (type == "folder") ? "folder" : "bookmark",
+                    "type": (type == "folder") ? "folder" : "url",
+                    "url": "http://www.google.com",
+                };
+
+                if (type == "folder") {
+                    bookmarkObj.children = [];
+                }
             }
 
             dataMap[bookmarkObj.id] = bookmarkObj;
 
             moveToFolder(bookmarkObj.id, targetFolderId, toIndex);
         },
-        removeById: (id) => {
-            id = id.toString();
-            let bookmarkObj = dataMap[id];
-            if (bookmarkObj == null) {
-                return;
-            }
-            bookmarkObj.parent.children = bookmarkObj.parent.children.filter(function (el) { return el.id != bookmarkObj.id; });
-            convertToView();
-        }
+        removeById: removeById
 
     }
 })(bookmarkJson);
