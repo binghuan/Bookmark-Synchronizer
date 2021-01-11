@@ -188,12 +188,6 @@ var book = (function (bookmarkData) {
         removeById(sourceId);
     }
 
-    let copyBookmark = (sourceId) => {
-        console.log(">> copyBookmark:", sourceId);
-        let sourceObj = dataMap[sourceId];
-        temp = Object.assign({}, sourceObj);;
-    }
-
     let copy = (sourceId) => {
         // How to test 
         /*
@@ -263,7 +257,6 @@ var book = (function (bookmarkData) {
     return {
         copy: copy,
         cut: cut,
-        copyBookmark: copyBookmark,
         getTemp: getTemp,
         cut: cut,
         getTree: () => {
