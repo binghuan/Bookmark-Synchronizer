@@ -1,3 +1,6 @@
+// Reference: MDN Object.assign()
+// https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+
 var bookmarkJson = {
     "checksum": "695bd7d6ad4e4c5cdc6dd999b96c3046",
     "roots": {
@@ -13,7 +16,32 @@ var bookmarkJson = {
                     },
                     "name": "Feedly",
                     "type": "url",
-                    "url": "http://cloud.feedly.com/#latest"
+                    "url": "http://www.feedly.com",
+                },
+                {
+                    "date_added": "13019420134102000",
+                    "guid": "7dfde927-cc03-f5c6-bee8-8bc3cdf8cd57",
+                    "id": "6001",
+                    "meta_info": {
+                        "last_visited_desktop": "13204094342410328",
+                        "last_visited": "13204094342410328"
+                    },
+                    "name": "My Folder",
+                    "type": "folder",
+                    "children": [
+                        {
+                            "date_added": "13019420134102000",
+                            "guid": "7dfde927-cc03-f5c6-bee8-8bc3cdf8cd57",
+                            "id": "7002",
+                            "meta_info": {
+                                "last_visited_desktop": "13204094342410328",
+                                "last_visited": "13204094342410328"
+                            },
+                            "name": "Google",
+                            "type": "url",
+                            "url": "http://www.google.com"
+                        }
+                    ]
                 }
             ],
             "date_added": "13023623358198834",
@@ -153,25 +181,73 @@ var book = (function (bookmarkData) {
 
     convertToView();
 
-    let copyFolder = (sourceId) => {
-        console.log(">> cutFolder:", sourceId);
-    } 
-
-    let cutFolder = (sourceId) => {
-        console.log(">> cutFolder:", sourceId);
+    let cut = (sourceId) => {
+        console.log(">> cut:", sourceId);
         let sourceObj = dataMap[sourceId];
         temp = sourceObj;
         removeById(sourceId);
     }
 
-    let cutBookmark = (sourceId) => {
-        console.log(">> cutBookmark:", sourceId);
-        cloneById(sourceId);
-        removeById(sourceId);
-    }
-
     let copyBookmark = (sourceId) => {
         console.log(">> copyBookmark:", sourceId);
+        let sourceObj = dataMap[sourceId];
+        temp = Object.assign({}, sourceObj);;
+    }
+
+    let copy = (sourceId) => {
+        // How to test 
+        /*
+            book.copy(1); book.getTemp().children[0].name = "hello world"; (book.getTemp().children[0].name == book.getTree().roots.bookmark_bar.children[0].name);
+        */
+        let copyBookmarkOrFolder = (source) => {
+            console.log(">> copyBookmarkOrFolder:");
+
+            if (source == null) {
+                return null;
+            }
+
+            let theCopy = {
+                "children": [],
+                "date_added": source.date_added,
+                "date_modified": source.date_modified,
+                "guid": source.guid,
+                "id": source.id,
+                "name": source.name,
+                "type": source.type
+            }
+            if (source.meta_info != null) {
+                theCopy.meta_info = {
+                    last_visited_desktop: source.meta_info.last_visited_desktop,
+                    last_visited: source.meta_info.last_visited
+                }
+            }
+            if (source.children != null && source.children.length > 0) {
+
+                let i = 0;
+                source.children.forEach((childObj) => {
+                    i += 1;
+                    console.log("clone child", `${i}/${source.children.length}`);
+                    let clone = copyBookmarkOrFolder(childObj);
+                    if (clone != null) {
+                        theCopy.children.push(clone);
+                    }
+                })
+            }
+
+            console.log("return theCopy:", theCopy)
+            return theCopy;
+        }
+
+        if (typeof sourceId != "string") {
+            sourceId = sourceId.toString();
+        }
+
+        let sourceObj = dataMap[sourceId];
+        console.log(">> copy:", sourceId, sourceObj);
+
+        //1st, clone 1st layer
+        let cloneObj = copyBookmarkOrFolder(sourceObj)
+        temp = cloneObj;
     }
 
     let removeById = (id) => {
@@ -185,9 +261,11 @@ var book = (function (bookmarkData) {
     }
 
     return {
-
+        copy: copy,
+        cut: cut,
+        copyBookmark: copyBookmark,
         getTemp: getTemp,
-        cutBookmark: cutBookmark,
+        cut: cut,
         getTree: () => {
             return dataTree;
         },
