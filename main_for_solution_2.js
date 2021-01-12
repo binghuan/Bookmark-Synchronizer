@@ -68,7 +68,7 @@ var bookmarkJson = {
     "version": 1
 };
 
-var book = (function (bookmarkData) {
+var bkmg = (function (bookmarkData) {
 
     // The original JSON object of the bookmark
     let dataTree = bookmarkData || {};
@@ -177,7 +177,7 @@ var book = (function (bookmarkData) {
     };
 
     // Move bookmark or folder into another folder
-    let moveToFolder = (sourceId, targetFolderId, toIndex) => {
+    let move = (sourceId, targetFolderId, toIndex) => {
         sourceId = sourceId.toString();
         targetFolderId = targetFolderId.toString();
         let targetFolder = dataMap[targetFolderId];
@@ -215,7 +215,7 @@ var book = (function (bookmarkData) {
         }
         let sourceObj = dataMap[sourceId];
         objInClipboard = sourceObj;
-        removeById(sourceId);
+        remove(sourceId);
     }
 
     // Clone bookmark or folder into memory.
@@ -238,7 +238,7 @@ var book = (function (bookmarkData) {
     }
 
     // Remove bookmark or folder.
-    let removeById = (id) => {
+    let remove = (id) => {
         id = id.toString();
         console.log(`>> removeById(${id})`);
         let bookmarkObj = dataMap[id];
@@ -269,7 +269,7 @@ var book = (function (bookmarkData) {
     }
 
     // Insert bookmark or folder into a folder.
-    let insertToFolder = (sourceObj, targetFolderId, toIndex) => {
+    let paste = (sourceObj, targetFolderId, toIndex) => {
         console.log(`>> insertToFolder: ${sourceObj} to folder ${targetFolderId} toIndex ${toIndex}`);
         if (sourceObj == null) {
             console.warn("sourceObj is null");
@@ -324,13 +324,17 @@ var book = (function (bookmarkData) {
 
         recursiveUpdate(bookmarkObj);
         dataMap[bookmarkObj.id] = bookmarkObj;
-        moveToFolder(bookmarkObj.id, targetFolderId, toIndex);
+        move(bookmarkObj.id, targetFolderId, toIndex);
     };
 
     return {
         toContentString: toContentString,
         copy: copy,
         cut: cut,
+        move: move,
+        paste: paste,
+        remove: remove,
+        convertToView: convertToView,
         getCopy: getCopy,
         getTree: () => {
             return dataTree;
@@ -344,12 +348,7 @@ var book = (function (bookmarkData) {
             } else {
                 dataTree = data;
             }
-        },
-        convertToView: convertToView,
-        moveToFolder: moveToFolder,
-        insertToFolder: insertToFolder,
-        removeById: removeById
-
+        }
     }
 })(bookmarkJson);
 
@@ -359,11 +358,11 @@ book.getCopy().children[0].name = "hello world";
 if((book.getCopy().children[0].name == book.getTree().roots.bookmark_bar.children[0].name) == false){
     console.log("PASS");
 };
-book.moveToFolder(7002, 1, 0)
+book.move(7002, 1, 0)
 book.cut(6001, 1, 0);
-book.insertToFolder( "folder", 1,0);
-book.insertToFolder( book.getCopy(), 1,0);
-book.removeById(5006);
+book.paste( "folder", 1,0);
+book.paste( book.getCopy(), 1,0);
+book.remove(5006);
 book.copy(1);
-book.insertToFolder( book.getCopy(), 1,0);
+book.paste( book.getCopy(), 1,0);
 */
