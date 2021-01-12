@@ -335,7 +335,8 @@ var bkmg = (function (bookmarkData) {
     let test = () => {
         copy(1);
         getCopy().children[0].name = "hello world";
-        if ((bkmg.getCopy().children[0].name == bkmg.getTree().roots.bookmark_bar.children[0].name) == false) {
+        if ((bkmg.getCopy().children[0].name ==
+            bkmg.getTree().roots.bookmark_bar.children[0].name) == false) {
             console.log("PASS");
         };
         move(7002, 1, 0)
