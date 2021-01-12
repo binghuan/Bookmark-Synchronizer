@@ -87,6 +87,23 @@ var book = (function (bookmarkData) {
 
     // Return saved bookmark or folder from memory.
     let getCopy = () => {
+        let recursiveRemoveParent = (dataObj) => {
+            if (dataObj == null) {
+                return;
+            }
+            delete dataObj.parent;
+            if (dataObj.children != null) {
+                dataObj.children.forEach(item => {
+                    recursiveRemoveParent(item);
+                })
+            }
+            return;
+        }
+
+        if (objInClipboard != null) {
+            recursiveRemoveParent(objInClipboard);
+        }
+
         return objInClipboard;
     }
 
@@ -119,7 +136,6 @@ var book = (function (bookmarkData) {
         let depth = 0;
 
         let traverse = (folderObj) => {
-            //console.log(">> travel: ", folderObj);
             if (folderObj == null) {
                 return;
             }
@@ -165,13 +181,16 @@ var book = (function (bookmarkData) {
         sourceId = sourceId.toString();
         targetFolderId = targetFolderId.toString();
         let targetFolder = dataMap[targetFolderId];
-        // console.log(targetFolder);
         if (targetFolder.type != "folder") {
             console.error("Target is not a folder");
             return;
         }
 
         let bookmarkObj = dataMap[sourceId];
+        if (bookmarkObj == null) {
+            console.error(`BookmarkObj (ID: ${sourceId}) was not found!`);
+            return;
+        }
         if (targetFolder.children.length < toIndex) {
             toIndex = 0;
         }
@@ -191,6 +210,9 @@ var book = (function (bookmarkData) {
     // Clone bookmark or folder into memory and remove original bookmark or folder.
     let cut = (sourceId) => {
         console.log(">> cut:", sourceId);
+        if (typeof sourceId != "string") {
+            sourceId = sourceId.toString();
+        }
         let sourceObj = dataMap[sourceId];
         objInClipboard = sourceObj;
         removeById(sourceId);
@@ -198,13 +220,9 @@ var book = (function (bookmarkData) {
 
     // Clone bookmark or folder into memory.
     let copy = (sourceId) => {
-        // How to test 
-        /*
-            book.copy(1); book.getCopy().children[0].name = "hello world"; (book.getCopy().children[0].name == book.getTree().roots.bookmark_bar.children[0].name);
-        */
-       if(sourceId == null) {
-           console.warn("Need to input an ID for bookmark or folder.");
-       }
+        if (sourceId == null) {
+            console.warn("Need to input an ID for bookmark or folder.");
+        }
         if (typeof sourceId != "string") {
             sourceId = sourceId.toString();
         }
@@ -222,6 +240,7 @@ var book = (function (bookmarkData) {
     // Remove bookmark or folder.
     let removeById = (id) => {
         id = id.toString();
+        console.log(`>> removeById(${id})`);
         let bookmarkObj = dataMap[id];
         if (bookmarkObj == null) {
             return;
@@ -251,7 +270,7 @@ var book = (function (bookmarkData) {
 
     // Insert bookmark or folder into a folder.
     let insertToFolder = (sourceObj, targetFolderId, toIndex) => {
-
+        console.log(`>> insertToFolder: ${sourceObj} to folder ${targetFolderId} toIndex ${toIndex}`);
         if (sourceObj == null) {
             console.warn("sourceObj is null");
             return;
@@ -279,17 +298,17 @@ var book = (function (bookmarkData) {
             if (type == "folder") {
                 bookmarkObj.children = [];
             }
+        } else {
+            let theCopy = JSON.parse(JSON.stringify(sourceObj));
+            bookmarkObj = theCopy;
         }
 
-        let theCopy = JSON.parse(JSON.stringify(sourceObj));
-        bookmarkObj = theCopy;
-
         let idCounter = 10000;
+        let now = new Date().getTime();
         let recursiveUpdate = (dataObj) => {
             if (dataObj == null) {
                 return;
             }
-            let now = new Date().getTime();
             let newId = now.toString().concat((idCounter += 1).toString());
             dataObj.guid = uuidv4();
             dataObj.id = newId;
@@ -305,7 +324,6 @@ var book = (function (bookmarkData) {
 
         recursiveUpdate(bookmarkObj);
         dataMap[bookmarkObj.id] = bookmarkObj;
-
         moveToFolder(bookmarkObj.id, targetFolderId, toIndex);
     };
 
@@ -334,3 +352,16 @@ var book = (function (bookmarkData) {
 
     }
 })(bookmarkJson);
+
+/* HOW TO TEST
+book.copy(1);
+book.getCopy().children[0].name = "hello world";
+if((book.getCopy().children[0].name == book.getTree().roots.bookmark_bar.children[0].name) == false){
+    console.log("PASS");
+};
+book.cut(6001, 1, 0);
+book.insertToFolder( book.getCopy(), 1,0);
+book.removeById(5006);
+book.copy(1);
+book.insertToFolder( book.getCopy(), 1,0);
+*/
