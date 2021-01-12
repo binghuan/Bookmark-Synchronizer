@@ -85,6 +85,7 @@ var book = (function (bookmarkData) {
         });
     }
 
+    // Return saved bookmark or folder from memory.
     let getCopy = () => {
         return objInClipboard;
     }
@@ -110,7 +111,7 @@ var book = (function (bookmarkData) {
         text += `${bookmarkObj.name} (id: ${bookmarkObj.id})`;
         console.log(text);
     }
-
+    // Iterate the bookmark data and build the map for using.
     let convertToView = () => {
         dataMap = {};
         console.log("↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦↦");
@@ -159,12 +160,6 @@ var book = (function (bookmarkData) {
         console.log("Total:", total);
     };
 
-    let cloneById = (sourceId) => {
-        console.log(">> cloneById", sourceId);
-        let sourceObj = dataMap[sourceId];
-        objInClipboard = sourceObj;
-    }
-
     // Move bookmark or folder into another folder
     let moveToFolder = (sourceId, targetFolderId, toIndex) => {
         sourceId = sourceId.toString();
@@ -193,6 +188,7 @@ var book = (function (bookmarkData) {
 
     convertToView();
 
+    // Clone bookmark or folder into memory and remove original bookmark or folder.
     let cut = (sourceId) => {
         console.log(">> cut:", sourceId);
         let sourceObj = dataMap[sourceId];
@@ -200,11 +196,15 @@ var book = (function (bookmarkData) {
         removeById(sourceId);
     }
 
+    // Clone bookmark or folder into memory.
     let copy = (sourceId) => {
         // How to test 
         /*
             book.copy(1); book.getCopy().children[0].name = "hello world"; (book.getCopy().children[0].name == book.getTree().roots.bookmark_bar.children[0].name);
         */
+       if(sourceId == null) {
+           console.warn("Need to input an ID for bookmark or folder.");
+       }
         if (typeof sourceId != "string") {
             sourceId = sourceId.toString();
         }
@@ -219,6 +219,7 @@ var book = (function (bookmarkData) {
         convertToView();
     }
 
+    // Remove bookmark or folder.
     let removeById = (id) => {
         id = id.toString();
         let bookmarkObj = dataMap[id];
@@ -228,8 +229,6 @@ var book = (function (bookmarkData) {
         bookmarkObj.parent.children = bookmarkObj.parent.children.filter(function (el) { return el.id != bookmarkObj.id; });
         convertToView();
     }
-
-
 
     let escapeJsonString = (str) => {
         return (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
@@ -242,6 +241,7 @@ var book = (function (bookmarkData) {
         }
     }
 
+    // Escape JSON string and return it.
     let toContentString = () => {
         removeParent();
         let contentString = escapeJsonString(JSON.stringify(dataTree));
@@ -249,12 +249,71 @@ var book = (function (bookmarkData) {
         return contentString;
     }
 
+    // Insert bookmark or folder into a folder.
+    let insertToFolder = (sourceObj, targetFolderId, toIndex) => {
+
+        if (sourceObj == null) {
+            console.warn("sourceObj is null");
+            return;
+        }
+
+        targetFolderId = targetFolderId.toString();
+        let timestamp = new Date().getTime() * 10000;
+
+        let bookmarkObj = null;
+        if (typeof sourceObj == "string") {
+            let type = sourceObj;
+            bookmarkObj = {
+                "date_added": timestamp,
+                "guid": uuidv4(),
+                "id": timestamp,
+                "meta_info": {
+                    "last_visited_desktop": null,
+                    "last_visited": null,
+                },
+                "name": (type == "folder") ? "folder" : "bookmark",
+                "type": (type == "folder") ? "folder" : "url",
+                "url": "http://www.google.com",
+            };
+
+            if (type == "folder") {
+                bookmarkObj.children = [];
+            }
+        }
+
+        let theCopy = JSON.parse(JSON.stringify(sourceObj));
+        bookmarkObj = theCopy;
+
+        let idCounter = 10000;
+        let recursiveUpdate = (dataObj) => {
+            if (dataObj == null) {
+                return;
+            }
+            let now = new Date().getTime();
+            let newId = now.toString().concat((idCounter += 1).toString());
+            dataObj.guid = uuidv4();
+            dataObj.id = newId;
+            dataObj.date_added = now * 10000;
+
+            if (dataObj.children != null) {
+                dataObj.children.forEach(item => {
+                    recursiveUpdate(item);
+                })
+            }
+            return;
+        }
+
+        recursiveUpdate(bookmarkObj);
+        dataMap[bookmarkObj.id] = bookmarkObj;
+
+        moveToFolder(bookmarkObj.id, targetFolderId, toIndex);
+    };
+
     return {
         toContentString: toContentString,
         copy: copy,
         cut: cut,
         getCopy: getCopy,
-        cut: cut,
         getTree: () => {
             return dataTree;
         },
@@ -269,66 +328,8 @@ var book = (function (bookmarkData) {
             }
         },
         convertToView: convertToView,
-        printBookmarkObj: printBookmarkObj,
         moveToFolder: moveToFolder,
-        insertToFolder: (sourceObj, targetFolderId, toIndex) => {
-
-            if (sourceObj == null) {
-                console.warn("sourceObj is null");
-                return;
-            }
-
-            targetFolderId = targetFolderId.toString();
-            let timestamp = new Date().getTime() * 10000;
-
-            let bookmarkObj = null;
-            if (typeof sourceObj == "string") {
-                let type = sourceObj;
-                bookmarkObj = {
-                    "date_added": timestamp,
-                    "guid": uuidv4(),
-                    "id": timestamp,
-                    "meta_info": {
-                        "last_visited_desktop": null,
-                        "last_visited": null,
-                    },
-                    "name": (type == "folder") ? "folder" : "bookmark",
-                    "type": (type == "folder") ? "folder" : "url",
-                    "url": "http://www.google.com",
-                };
-
-                if (type == "folder") {
-                    bookmarkObj.children = [];
-                }
-            }
-
-            let theCopy = JSON.parse(JSON.stringify(sourceObj));
-            bookmarkObj = theCopy;
-
-            let idCounter = 10000;
-            let recursiveUpdate = (dataObj) => {
-                if (dataObj == null) {
-                    return;
-                }
-                let now = new Date().getTime();
-                let newId = now.toString().concat((idCounter += 1).toString());
-                dataObj.guid = uuidv4();
-                dataObj.id = newId;
-                dataObj.date_added = now * 10000;
-
-                if (dataObj.children != null) {
-                    dataObj.children.forEach(item => {
-                        recursiveUpdate(item);
-                    })
-                }
-                return;
-            }
-
-            recursiveUpdate(bookmarkObj);
-            dataMap[bookmarkObj.id] = bookmarkObj;
-
-            moveToFolder(bookmarkObj.id, targetFolderId, toIndex);
-        },
+        insertToFolder: insertToFolder,
         removeById: removeById
 
     }
