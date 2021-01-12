@@ -359,7 +359,9 @@ book.getCopy().children[0].name = "hello world";
 if((book.getCopy().children[0].name == book.getTree().roots.bookmark_bar.children[0].name) == false){
     console.log("PASS");
 };
+book.moveToFolder(7002, 1, 0)
 book.cut(6001, 1, 0);
+book.insertToFolder( "folder", 1,0);
 book.insertToFolder( book.getCopy(), 1,0);
 book.removeById(5006);
 book.copy(1);
