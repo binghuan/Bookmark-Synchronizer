@@ -1,6 +1,18 @@
 // Reference: MDN Object.assign()
 // https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
 
+/*
+JSON.stringify(book.getTree()); 
+VM233:1 Uncaught TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'Object'
+    |     property 'children' -> object with constructor 'Array'
+    |     index 0 -> object with constructor 'Object'
+    --- property 'parent' closes the circle
+    at JSON.stringify (<anonymous>)
+    at <anonymous>:1:6
+
+--> Solution: remove parent before JSON.stringify()
+*/
 var bookmarkJson = {
     "checksum": "695bd7d6ad4e4c5cdc6dd999b96c3046",
     "roots": {
@@ -254,7 +266,28 @@ var book = (function (bookmarkData) {
         convertToView();
     }
 
+
+
+    let escapeJsonString = (str) => {
+        return (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
+    }
+
+    let remoteParent = () => {
+        for (let i = 0; i < Object.keys(dataMap).length; i++) {
+            let key = Object.keys(dataMap)[i];
+            delete dataMap[key].parent;
+        }
+    }
+
+    let toContentString = () => {
+        remoteParent();
+        let contentString = escapeJsonString(JSON.stringify(dataTree));
+        convertToView();
+        return contentString;
+    }
+
     return {
+        toContentString: toContentString,
         copy: copy,
         cut: cut,
         getTemp: getTemp,
