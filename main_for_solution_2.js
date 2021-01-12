@@ -85,27 +85,7 @@ var bkmg = (function (bookmarkData) {
         });
     }
 
-    // Return saved bookmark or folder from memory.
-    let getCopy = () => {
-        let recursiveRemoveParent = (dataObj) => {
-            if (dataObj == null) {
-                return;
-            }
-            delete dataObj.parent;
-            if (dataObj.children != null) {
-                dataObj.children.forEach(item => {
-                    recursiveRemoveParent(item);
-                })
-            }
-            return;
-        }
 
-        if (objInClipboard != null) {
-            recursiveRemoveParent(objInClipboard);
-        }
-
-        return objInClipboard;
-    }
 
     let printBookmarkObj = (depth, bookmarkObj) => {
         if (bookmarkObj == null) {
@@ -113,10 +93,10 @@ var bkmg = (function (bookmarkData) {
         }
         let text = "";
         for (let i = 0; i < depth; i++) {
-            if (i == 0) {
-                text += "     ";
-            } else {
+            if (i == depth - 1) {
                 text += "  └──";
+            } else {
+                text += "     ";
             }
         }
         if (bookmarkObj.type == "folder") {
@@ -214,8 +194,37 @@ var bkmg = (function (bookmarkData) {
             sourceId = sourceId.toString();
         }
         let sourceObj = dataMap[sourceId];
-        objInClipboard = sourceObj;
+        setCopy(sourceObj);
+        convertToView();
         remove(sourceId);
+    }
+
+    let removeParentRecursively = (dataObj) => {
+        if (dataObj == null) {
+            return;
+        }
+        delete dataObj.parent;
+        if (dataObj.children != null) {
+            dataObj.children.forEach(item => {
+                removeParentRecursively(item);
+            })
+        }
+        return;
+    }
+
+    // Return saved bookmark or folder from memory.
+    let getCopy = () => {
+        return objInClipboard;
+    }
+
+    let setCopy = (dataObj) => {
+        if (dataObj == null) {
+            objInClipboard = null;
+            return;
+        }
+        removeParentRecursively(dataObj);
+        let cloneObj = JSON.parse(JSON.stringify(dataObj));
+        objInClipboard = cloneObj;
     }
 
     // Clone bookmark or folder into memory.
@@ -227,20 +236,16 @@ var bkmg = (function (bookmarkData) {
             sourceId = sourceId.toString();
         }
 
-        let sourceObj = dataMap[sourceId];
         removeParent();
-        let sourceObjString = JSON.stringify(sourceObj);
-        let cloneObj = JSON.parse(sourceObjString);
-
-        objInClipboard = cloneObj;
-
+        let sourceObj = dataMap[sourceId];
+        setCopy(sourceObj);
         convertToView();
     }
 
     // Remove bookmark or folder.
     let remove = (id) => {
         id = id.toString();
-        console.log(`>> removeById(${id})`);
+        console.log(`>> remove(${id})`);
         let bookmarkObj = dataMap[id];
         if (bookmarkObj == null) {
             return;
@@ -270,7 +275,7 @@ var bkmg = (function (bookmarkData) {
 
     // Insert bookmark or folder into a folder.
     let paste = (sourceObj, targetFolderId, toIndex) => {
-        console.log(`>> insertToFolder: ${sourceObj} to folder ${targetFolderId} toIndex ${toIndex}`);
+        console.log(`>> paste: ${sourceObj} to folder ${targetFolderId} toIndex ${toIndex}`);
         if (sourceObj == null) {
             console.warn("sourceObj is null");
             return;
@@ -327,7 +332,23 @@ var bkmg = (function (bookmarkData) {
         move(bookmarkObj.id, targetFolderId, toIndex);
     };
 
+    let test = () => {
+        copy(1);
+        getCopy().children[0].name = "hello world";
+        if ((bkmg.getCopy().children[0].name == bkmg.getTree().roots.bookmark_bar.children[0].name) == false) {
+            console.log("PASS");
+        };
+        move(7002, 1, 0)
+        cut(6001, 1, 0);
+        paste("folder", 1, 0);
+        paste(bkmg.getCopy(), 1, 0);
+        remove(5006);
+        copy(1);
+        paste(bkmg.getCopy(), 1, 0);
+    }
+
     return {
+        test: test,
         toContentString: toContentString,
         copy: copy,
         cut: cut,
@@ -351,18 +372,3 @@ var bkmg = (function (bookmarkData) {
         }
     }
 })(bookmarkJson);
-
-/* HOW TO TEST
-book.copy(1);
-book.getCopy().children[0].name = "hello world";
-if((book.getCopy().children[0].name == book.getTree().roots.bookmark_bar.children[0].name) == false){
-    console.log("PASS");
-};
-book.move(7002, 1, 0)
-book.cut(6001, 1, 0);
-book.paste( "folder", 1,0);
-book.paste( book.getCopy(), 1,0);
-book.remove(5006);
-book.copy(1);
-book.paste( book.getCopy(), 1,0);
-*/
