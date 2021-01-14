@@ -273,6 +273,14 @@ var bkmg = (function (bookmarkData) {
         return contentString;
     }
 
+    // Parse Bookmarks to JSON String.
+    let toJSONSring = () => {
+        removeParent();
+        let jsonString = JSON.stringify(dataTree);
+        convertToView();
+        return jsonString;
+    }
+
     // Insert bookmark or folder into a folder.
     let paste = (sourceObj, targetFolderId, toIndex) => {
         console.log(`>> paste: ${sourceObj} to folder ${targetFolderId} toIndex ${toIndex}`);
@@ -351,6 +359,7 @@ var bkmg = (function (bookmarkData) {
     return {
         test: test,
         toContentString: toContentString,
+        toJSONString: toJSONSring,
         copy: copy,
         cut: cut,
         move: move,
