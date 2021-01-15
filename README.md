@@ -17,3 +17,5 @@ We need to consider the following issues:
 ## Demo
 ![](./demo.gif)
 
+## Exporeted APIs for Solution 2
+![](./Slide28.png)
