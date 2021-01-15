@@ -266,7 +266,7 @@ var bkmg = (function (bookmarkData) {
     }
 
     // Escape JSON string and return it.
-    let toContentString = () => {
+    let toEscapedJSONString = () => {
         removeParent();
         let contentString = escapeJsonString(JSON.stringify(dataTree));
         convertToView();
@@ -358,7 +358,7 @@ var bkmg = (function (bookmarkData) {
 
     return {
         test: test,
-        toContentString: toContentString,
+        toEscapedJSONString: toEscapedJSONString,
         toJSONString: toJSONSring,
         copy: copy,
         cut: cut,
