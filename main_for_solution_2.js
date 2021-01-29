@@ -379,6 +379,7 @@ var bkmg = (function (bookmarkData) {
             } else {
                 dataTree = data;
             }
+            convertToView();
         }
     }
 })(bookmarkJson);
